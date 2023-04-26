@@ -49,7 +49,7 @@ func Test_DoGrep2File(t *testing.T) {
 	do_grep(step, &stageresult)
 }
 
-func Test_OpenFile(t *testing.T) {
+func Test_OpenFile_Pattern(t *testing.T) {
 	var mPriorStageResult StageResult
 	var mstep grep_step
 	mstep = grep_step{
@@ -67,4 +67,37 @@ func Test_OpenFile(t *testing.T) {
 	mfile.Close()
 }
 
-//GetResults(mGrepPattern string, step grep_step, mPriorStageResult *StageResult)
+func Test_OpenFile(t *testing.T) {
+	var mPriorStageResult StageResult
+	var mstep grep_step
+	mstep = grep_step{
+		Title:                  "Step2",
+		Select_Ref:             "1",
+		RegexpPattern:          ".* HandshakeDestConnID ([0-9abcdef]{8}).*",
+		Output:                 "Memory",
+		OutputFilenameTemplate: "client_suffix.txt",
+	}
+	mPriorStageResult = "1234"
+	mfile, mfilename, err := OpenFile(mstep, &mPriorStageResult)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "client_suffix.txt", mfilename)
+	assert.NotNil(t, mfile)
+	mfile.Close()
+}
+
+func Test_GetResults(t *testing.T) {
+	var mPriorStageResult StageResult
+	var mstep grep_step
+	mstep = grep_step{
+		Title:       "Step2",
+		Select_Ref:  "1",
+		GrepPattern: "Application error",
+		InputFile:   "clientexp7#1.txt",
+		Output:      "Memory",
+	}
+	mPriorStageResult = "1234"
+	results := GetResults(mstep.GrepPattern, mstep, &mPriorStageResult)
+	assert.Equal(t, 5, len(results))
+}
+
+//

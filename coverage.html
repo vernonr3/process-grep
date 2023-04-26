@@ -1,0 +1,333 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>process-grep: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">process-grep/config.go (85.7%)</option>
+				
+				<option value="file1">process-grep/main.go (0.0%)</option>
+				
+				<option value="file2">process-grep/process_grep.go (64.4%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package main
+
+import (
+        "bufio"
+        "encoding/json"
+        "fmt"
+        "os"
+)
+
+type grep_step struct {
+        Title                  string `json:"title"`
+        Index                  int    `json:"index"`
+        Select_Ref             string `json:"select_ref"`
+        GrepPattern            string `json:"grep_select_pattern"`
+        RegexpPattern          string `json:"regexp_pattern"`
+        Output                 string `step:"output"`
+        InputFile              string `json:"input_file"`
+        OutputFilenameTemplate string `json:"output_filename_template"`
+}
+
+type grep_steps struct {
+        Steps []grep_step `json:"steps"`
+}
+
+func NewConfig(filename string) *grep_steps <span class="cov8" title="1">{
+        var steps grep_steps
+        var bytes []byte
+        mfile, err := os.Open(filename)
+        if err != nil </span><span class="cov0" title="0">{
+                panic(err)</span>
+        }
+        <span class="cov8" title="1">scanner := bufio.NewScanner(mfile)
+
+        scanner.Split(bufio.ScanLines)
+
+        for scanner.Scan() </span><span class="cov8" title="1">{
+                bytes = append(bytes, scanner.Bytes()...)
+        }</span>
+        // The method os.File.Close() is called
+        // on the os.File object to close the file
+        <span class="cov8" title="1">mfile.Close()
+        err = json.Unmarshal(bytes, &amp;steps)
+        if err != nil </span><span class="cov0" title="0">{
+                fmt.Printf("Error %v\n", err)
+        }</span>
+        <span class="cov8" title="1">return &amp;steps</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package main
+
+import (
+        "fmt"
+        "os"
+)
+
+func main() <span class="cov0" title="0">{
+        if len(os.Args) &gt; 0 </span><span class="cov0" title="0">{
+                config := NewConfig(os.Args[1])
+                fmt.Printf("Process_grep using %s\n", os.Args[1])
+                ProcessGrep(*config)
+        }</span>
+
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package main
+
+import (
+        "fmt"
+        "os"
+        "os/exec"
+        "regexp"
+)
+
+// wants revision to be able to use more than 1 capture group from a regular expression...
+type StageResult string
+
+type StageResults []StageResult
+
+type MultipleStageResults map[int][]StageResults
+
+func OpenFile(step grep_step, mPriorStageResult *StageResult) (*os.File, string, error) <span class="cov8" title="1">{
+        var filename string
+        patt := regexp.MustCompile("(.*)(&lt;select_ref&gt;)(.*)")
+        results := patt.FindAllStringSubmatch(step.OutputFilenameTemplate, -1)
+        if len(results) &gt; 0 </span><span class="cov8" title="1">{
+                result := results[0]
+                filename = string(result[1]) + string(*mPriorStageResult) + string(result[3])
+        }</span> else<span class="cov8" title="1"> {
+                filename = step.OutputFilenameTemplate
+        }</span>
+        <span class="cov8" title="1">mfile, err := os.Create(filename)
+        if err != nil </span><span class="cov0" title="0">{
+                fmt.Printf("Unable to create file %s\n", filename)
+                return nil, filename, err
+        }</span>
+        <span class="cov8" title="1">return mfile, filename, nil</span>
+}
+
+func OutputToFile(step grep_step, cmdoutput []byte, mPriorStageResult *StageResult) <span class="cov8" title="1">{
+        var endindex int
+        var byte byte
+        fmt.Printf("Output:\n%s\n", cmdoutput)
+        startindex := 0
+        mfile, _, err := OpenFile(step, mPriorStageResult)
+        defer mfile.Close()
+        if err != nil </span><span class="cov0" title="0">{
+                fmt.Printf("Problem creating file\n")
+        }</span>
+        <span class="cov8" title="1">for endindex, byte = range cmdoutput </span><span class="cov8" title="1">{
+                if byte == '\n' </span><span class="cov8" title="1">{
+                        nBytesWritten, err := mfile.Write(cmdoutput[startindex : endindex+1])
+                        if err != nil </span><span class="cov0" title="0">{
+                                fmt.Printf("Problem writing file\n")
+                        }</span>
+                        <span class="cov8" title="1">if nBytesWritten == 0 </span><span class="cov0" title="0">{
+                                fmt.Printf("Problem writing file\n")
+                        }</span>
+                        <span class="cov8" title="1">startindex = endindex + 1</span>
+                }
+                <span class="cov8" title="1">endindex++</span>
+        }
+}
+
+func GetResults(mGrepPattern string, step grep_step, mPriorStageResult *StageResult) (stageresults StageResults) <span class="cov8" title="1">{
+        cmdoutput, err := exec.Command("grep", mGrepPattern, step.InputFile).Output()
+        if err != nil </span><span class="cov0" title="0">{
+                switch e := err.(type) </span>{
+                case *exec.Error:<span class="cov0" title="0">
+                        fmt.Println("failed executing:", err)</span>
+                case *exec.ExitError:<span class="cov0" title="0">
+                        fmt.Println("command exit rc =", e.ExitCode())</span>
+                default:<span class="cov0" title="0">
+                        panic(err)</span>
+                }
+        }
+        <span class="cov8" title="1">if step.Output == "Memory" </span><span class="cov8" title="1">{
+                var endindex int
+                var byte byte
+                fmt.Printf("Output:\n%s\n", cmdoutput)
+                startindex := 0
+                for endindex, byte = range cmdoutput </span><span class="cov8" title="1">{
+                        if byte == '\n' </span><span class="cov8" title="1">{
+                                stageresults = append(stageresults, StageResult(cmdoutput[startindex:endindex]))
+                                startindex = endindex + 1
+                        }</span>
+                        <span class="cov8" title="1">endindex++</span>
+                }
+        } else<span class="cov8" title="1"> if step.Output == "File" </span><span class="cov8" title="1">{
+                OutputToFile(step, cmdoutput, mPriorStageResult)
+        }</span>
+        <span class="cov8" title="1">return stageresults</span>
+}
+
+func do_grep(step grep_step, mPriorStageResult *StageResult) *StageResults <span class="cov8" title="1">{
+        var mstageresults StageResults
+        var mGrepPattern string
+        if len(step.Select_Ref) &gt; 0 </span><span class="cov8" title="1">{
+                // doesn't actually use the reference - which it should...
+                // and it should loop...
+                fmt.Printf("grep \"%s\" %s\n", string(*mPriorStageResult), step.InputFile)
+                mGrepPattern = string(*mPriorStageResult)
+                mstageresults = GetResults(mGrepPattern, step, mPriorStageResult)
+        }</span> else<span class="cov8" title="1"> {
+                fmt.Printf("grep \"%s\" %s\n", step.GrepPattern, step.InputFile)
+                mGrepPattern = step.GrepPattern
+                mstageresults = GetResults(mGrepPattern, step, mPriorStageResult)
+        }</span>
+        <span class="cov8" title="1">return &amp;mstageresults</span>
+}
+
+func do_regexp(step grep_step, mPriorStageResult *StageResult) *StageResults <span class="cov8" title="1">{
+        var stageresults StageResults
+        //var mregexp string
+        //mregexp = step.RegexpPattern
+        patt, err := regexp.Compile(step.RegexpPattern)
+        if err != nil </span><span class="cov0" title="0">{
+                fmt.Printf("Problem compiling regular expression :%s\n", step.RegexpPattern)
+        }</span>
+        <span class="cov8" title="1">results := patt.FindAllStringSubmatch(string(*mPriorStageResult), -1)
+        if len(results) &gt; 0 </span><span class="cov8" title="1">{
+                result := results[0]
+                if step.Output == "Memory" </span><span class="cov8" title="1">{
+                        stageresults = append(stageresults, StageResult(result[1]))
+                }</span>
+        }
+        <span class="cov8" title="1">return &amp;stageresults</span>
+}
+
+func ProcessGrep(mgrep_steps grep_steps) <span class="cov0" title="0">{
+        var mStageResults StageResults
+        var mBlankStageResult StageResult
+        mStageResults = StageResults{}
+        var mMultipleStageResults MultipleStageResults
+        mMultipleStageResults = make(MultipleStageResults, 5)
+        fmt.Printf("Welcome to Process Grep\n")
+        for index, step := range mgrep_steps.Steps </span><span class="cov0" title="0">{
+                if len(step.GrepPattern) &gt; 0 </span><span class="cov0" title="0">{
+                        // do grep...
+                        // loop at this level if there is more than 1 prior stage result..
+                        if index == 0 </span><span class="cov0" title="0">{
+                                mNewStageResults := do_grep(step, &amp;mBlankStageResult)
+                                mStageResults = *mNewStageResults
+                                mMultipleStageResults[step.Index] = append(mMultipleStageResults[step.Index], *mNewStageResults)
+                        }</span> else<span class="cov0" title="0"> {
+                                for _, mStageResults := range mMultipleStageResults[step.Index-1] </span><span class="cov0" title="0">{
+                                        for _, mStageResult := range mStageResults </span><span class="cov0" title="0">{
+                                                mNewStageResults := do_grep(step, &amp;mStageResult)
+                                                mStageResults = *mNewStageResults
+                                                mMultipleStageResults[step.Index] = append(mMultipleStageResults[step.Index], *mNewStageResults)
+                                        }</span>
+                                }
+                        }
+                } else<span class="cov0" title="0"> if len(step.Select_Ref) &gt; 0 </span><span class="cov0" title="0">{
+                        // use the output of the named step
+                        for _, mStageResult := range mStageResults </span><span class="cov0" title="0">{
+                                mNewStageResults := do_regexp(step, &amp;mStageResult)
+                                mStageResults = *mNewStageResults
+                                mMultipleStageResults[step.Index] = append(mMultipleStageResults[step.Index], *mNewStageResults)
+                        }</span>
+                }
+
+        }
+        // fmt.Printf("Found %d sets of results", len(*mMultipleStageResults))
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

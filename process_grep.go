@@ -22,7 +22,7 @@ func OpenFile(step grep_step, mPriorStageResult *StageResult) (*os.File, string,
 		result := results[0]
 		filename = string(result[1]) + string(*mPriorStageResult) + string(result[3])
 	} else {
-		filename = step.GrepPattern
+		filename = step.OutputFilenameTemplate
 	}
 	mfile, err := os.Create(filename)
 	if err != nil {
@@ -33,7 +33,6 @@ func OpenFile(step grep_step, mPriorStageResult *StageResult) (*os.File, string,
 }
 
 func OutputToFile(step grep_step, cmdoutput []byte, mPriorStageResult *StageResult) {
-	fmt.Printf("Not implemented yet for grep\n")
 	var endindex int
 	var byte byte
 	fmt.Printf("Output:\n%s\n", cmdoutput)

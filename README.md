@@ -1,7 +1,7 @@
 # process-grep
 
 
-This is an early version... say 0.2
+This is an early version... say 0.21
 
 It is designed to extract key information from huge text files (e.g. program log files)
 
@@ -30,5 +30,5 @@ This radically reduces the effort required to establish what may have caused Err
 
 1. The code doesn't yet cope with requests to capture multiple groups from the regular expression
 2. It's only been used for the use case above - so no more than 3 steps - and other possibilities haven't been explored.
-3. whilst unit tests exists - the match between the tests and the latest version of the code isn't great. They are in need to tidying.
+3. Unit test coverage is moderate. The logic for executing multiple steps could be broken down and tested more thoroughly.
 4. total development time so far < 1 day...
