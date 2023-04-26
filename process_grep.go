@@ -14,7 +14,7 @@ type StageResults []StageResult
 
 type MultipleStageResults map[int][]StageResults
 
-func OpenFile(step grep_step, mPriorStageResult *StageResult) (*os.File, error) {
+func OpenFile(step grep_step, mPriorStageResult *StageResult) (*os.File, string, error) {
 	var filename string
 	patt := regexp.MustCompile("(.*)(<select_ref>)(.*)")
 	results := patt.FindAllStringSubmatch(step.OutputFilenameTemplate, -1)
@@ -27,9 +27,9 @@ func OpenFile(step grep_step, mPriorStageResult *StageResult) (*os.File, error) 
 	mfile, err := os.Create(filename)
 	if err != nil {
 		fmt.Printf("Unable to create file %s\n", filename)
-		return nil, err
+		return nil, filename, err
 	}
-	return mfile, nil
+	return mfile, filename, nil
 }
 
 func OutputToFile(step grep_step, cmdoutput []byte, mPriorStageResult *StageResult) {
@@ -38,7 +38,7 @@ func OutputToFile(step grep_step, cmdoutput []byte, mPriorStageResult *StageResu
 	var byte byte
 	fmt.Printf("Output:\n%s\n", cmdoutput)
 	startindex := 0
-	mfile, err := OpenFile(step, mPriorStageResult)
+	mfile, _, err := OpenFile(step, mPriorStageResult)
 	defer mfile.Close()
 	if err != nil {
 		fmt.Printf("Problem creating file\n")
