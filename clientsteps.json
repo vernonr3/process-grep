@@ -1,0 +1,8 @@
+{
+    "steps":
+    [
+        {"title":"step1","index":1,"grep_select_pattern":"Application error","output":"Memory","input_file":"../../libp2p_issues/libp2p_tests/spawnrate2/clientexp25#2.txt"},
+        {"title":"step2","index":2,"select_ref":"1","regexp_pattern":".* HandshakeDestConnID ([0123456789abcdef]{8}).*","output":"Memory"},
+        {"title":"step3","index":3,"select_ref":"2","grep_select_pattern":"<select_ref>","output":"File","input_file":"../../libp2p_issues/libp2p_tests/spawnrate2/clientexp25#2.txt","output_filename_template":"client25_<select_ref>_res.txt"}
+    ]
+}
