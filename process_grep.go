@@ -122,39 +122,35 @@ func do_regexp(step grep_step, mPriorStageResult *StageResult) *StageResults {
 	return &stageresults
 }
 
-func ProcessGrep(mgrep_steps grep_steps) {
-	var mStageResults StageResults
+func ProcessGrep(mgrep_steps grep_steps) *MultipleStageResults {
 	var mBlankStageResult StageResult
-	mStageResults = StageResults{}
 	var mMultipleStageResults MultipleStageResults
 	mMultipleStageResults = make(MultipleStageResults, 5)
 	fmt.Printf("Welcome to Process Grep\n")
 	for index, step := range mgrep_steps.Steps {
 		if len(step.GrepPattern) > 0 {
-			// do grep...
 			// loop at this level if there is more than 1 prior stage result..
 			if index == 0 {
 				mNewStageResults := do_grep(step, &mBlankStageResult)
-				mStageResults = *mNewStageResults
 				mMultipleStageResults[step.Index] = append(mMultipleStageResults[step.Index], *mNewStageResults)
 			} else {
 				for _, mStageResults := range mMultipleStageResults[step.Index-1] {
 					for _, mStageResult := range mStageResults {
 						mNewStageResults := do_grep(step, &mStageResult)
-						mStageResults = *mNewStageResults
 						mMultipleStageResults[step.Index] = append(mMultipleStageResults[step.Index], *mNewStageResults)
 					}
 				}
 			}
 		} else if len(step.Select_Ref) > 0 {
 			// use the output of the named step
-			for _, mStageResult := range mStageResults {
-				mNewStageResults := do_regexp(step, &mStageResult)
-				mStageResults = *mNewStageResults
-				mMultipleStageResults[step.Index] = append(mMultipleStageResults[step.Index], *mNewStageResults)
+			for _, mStageResults := range mMultipleStageResults[step.Index-1] {
+				for _, mStageResult := range mStageResults {
+					mNewStageResults := do_regexp(step, &mStageResult)
+					mMultipleStageResults[step.Index] = append(mMultipleStageResults[step.Index], *mNewStageResults)
+				}
 			}
 		}
 
 	}
-	// fmt.Printf("Found %d sets of results", len(*mMultipleStageResults))
+	return &mMultipleStageResults
 }

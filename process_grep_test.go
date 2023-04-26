@@ -100,4 +100,39 @@ func Test_GetResults(t *testing.T) {
 	assert.Equal(t, 5, len(results))
 }
 
+func Test_OverallProcessA(t *testing.T) {
+	var mgrep_steps grep_steps
+	var mstep1, mstep2, mstep3 grep_step
+	mstep1 = grep_step{
+		Title:       "Step1",
+		Index:       1,
+		GrepPattern: "Application error",
+		InputFile:   "clientexp7#1.txt",
+		Output:      "Memory",
+	}
+	mstep2 = grep_step{
+		Title:         "Step2",
+		Index:         2,
+		Select_Ref:    "1",
+		RegexpPattern: ".* HandshakeDestConnID ([0-9abcdef]{8}).*",
+		Output:        "Memory",
+	}
+	mstep3 = grep_step{
+		Title:       "Step3",
+		Index:       3,
+		Select_Ref:  "2",
+		InputFile:   "clientexp7#1.txt",
+		GrepPattern: "<select_ref>",
+		Output:      "Memory",
+	}
+	mgrep_steps.Steps = append(mgrep_steps.Steps, mstep1)
+	mgrep_steps.Steps = append(mgrep_steps.Steps, mstep2)
+	mgrep_steps.Steps = append(mgrep_steps.Steps, mstep3)
+	results := ProcessGrep(mgrep_steps)
+	assert.Equal(t, 5, len((*results)[1][0]))
+	assert.Equal(t, 1, len((*results)[2][0]))
+	assert.Equal(t, 11, len((*results)[3][0]))
+
+}
+
 //

@@ -59,7 +59,7 @@
 				
 				<option value="file1">process-grep/main.go (0.0%)</option>
 				
-				<option value="file2">process-grep/process_grep.go (64.4%)</option>
+				<option value="file2">process-grep/process_grep.go (88.5%)</option>
 				
 				</select>
 			</div>
@@ -263,41 +263,37 @@ func do_regexp(step grep_step, mPriorStageResult *StageResult) *StageResults <sp
         <span class="cov8" title="1">return &amp;stageresults</span>
 }
 
-func ProcessGrep(mgrep_steps grep_steps) <span class="cov0" title="0">{
-        var mStageResults StageResults
+func ProcessGrep(mgrep_steps grep_steps) *MultipleStageResults <span class="cov8" title="1">{
         var mBlankStageResult StageResult
-        mStageResults = StageResults{}
         var mMultipleStageResults MultipleStageResults
         mMultipleStageResults = make(MultipleStageResults, 5)
         fmt.Printf("Welcome to Process Grep\n")
-        for index, step := range mgrep_steps.Steps </span><span class="cov0" title="0">{
-                if len(step.GrepPattern) &gt; 0 </span><span class="cov0" title="0">{
-                        // do grep...
+        for index, step := range mgrep_steps.Steps </span><span class="cov8" title="1">{
+                if len(step.GrepPattern) &gt; 0 </span><span class="cov8" title="1">{
                         // loop at this level if there is more than 1 prior stage result..
-                        if index == 0 </span><span class="cov0" title="0">{
+                        if index == 0 </span><span class="cov8" title="1">{
                                 mNewStageResults := do_grep(step, &amp;mBlankStageResult)
-                                mStageResults = *mNewStageResults
                                 mMultipleStageResults[step.Index] = append(mMultipleStageResults[step.Index], *mNewStageResults)
-                        }</span> else<span class="cov0" title="0"> {
-                                for _, mStageResults := range mMultipleStageResults[step.Index-1] </span><span class="cov0" title="0">{
-                                        for _, mStageResult := range mStageResults </span><span class="cov0" title="0">{
+                        }</span> else<span class="cov8" title="1"> {
+                                for _, mStageResults := range mMultipleStageResults[step.Index-1] </span><span class="cov8" title="1">{
+                                        for _, mStageResult := range mStageResults </span><span class="cov8" title="1">{
                                                 mNewStageResults := do_grep(step, &amp;mStageResult)
-                                                mStageResults = *mNewStageResults
                                                 mMultipleStageResults[step.Index] = append(mMultipleStageResults[step.Index], *mNewStageResults)
                                         }</span>
                                 }
                         }
-                } else<span class="cov0" title="0"> if len(step.Select_Ref) &gt; 0 </span><span class="cov0" title="0">{
+                } else<span class="cov8" title="1"> if len(step.Select_Ref) &gt; 0 </span><span class="cov8" title="1">{
                         // use the output of the named step
-                        for _, mStageResult := range mStageResults </span><span class="cov0" title="0">{
-                                mNewStageResults := do_regexp(step, &amp;mStageResult)
-                                mStageResults = *mNewStageResults
-                                mMultipleStageResults[step.Index] = append(mMultipleStageResults[step.Index], *mNewStageResults)
-                        }</span>
+                        for _, mStageResults := range mMultipleStageResults[step.Index-1] </span><span class="cov8" title="1">{
+                                for _, mStageResult := range mStageResults </span><span class="cov8" title="1">{
+                                        mNewStageResults := do_regexp(step, &amp;mStageResult)
+                                        mMultipleStageResults[step.Index] = append(mMultipleStageResults[step.Index], *mNewStageResults)
+                                }</span>
+                        }
                 }
 
         }
-        // fmt.Printf("Found %d sets of results", len(*mMultipleStageResults))
+        <span class="cov8" title="1">return &amp;mMultipleStageResults</span>
 }
 </pre>
 		
